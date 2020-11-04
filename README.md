@@ -3,7 +3,7 @@
 ### Objective:
 This demo showcases a state machine with AWS StepFunctions, to be triggered when new documents are stored on a given S3 bucket, for classifying the documents with two methods (Rekognition Custom Labels on image, and Comprehend Custom Classifier on text), and extracting the metadata and text storing it on a DynamoDB table.
 
-<img src="./Images/0.png" alt="AWS demo architecture" class="center">
+<img src="./Images/0.png" width="50%" alt="AWS demo architecture" class="center">
 
 ### Instructions:
 

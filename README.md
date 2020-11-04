@@ -25,9 +25,9 @@ This demo showcases a state machine with AWS StepFunctions, to be triggered when
 7. For the "gov-classify-image", make sure you create an environment variable called "CUSTOM_CLASSIFIER_ARN" referencing your Comprehend Custom Classifier Endpoint ARN
 8. Create an Amazon DynamoDB table called "gov-metadata", make sure you set an index for Number "times", and sort index for String "doc"
 
-<img src="./Images/2.png" width="50%" alt="Document table in DynamoDB">
-
 You should now be able to test the solution by uploading a new image to the S3 image bucket, and monitor the execution of the StepFunctions state machine accordingly.
+
+<img src="./Images/2.png" width="50%" alt="Document table in DynamoDB">
 
 If the process is successful, you should now have a record stored in the DynamoDB table with your document metadata and text.
 

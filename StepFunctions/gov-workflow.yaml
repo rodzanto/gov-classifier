@@ -1,0 +1,35 @@
+{
+  "StartAt": "ClassifyImage",
+  "States": {
+    "ClassifyImage": {
+      "Type": "Task",
+        "Resource": "arn:aws:lambda:eu-west-1:[ACCOUNTID]:function:gov-classify-image",
+        "Parameters": {
+          "bucket_name.$": "$.bucket_name",
+          "file_key.$": "$.file_key"
+        },
+      "ResultPath": "$.imageresult",
+      "Next": "ClassifyText"
+    },
+    "ClassifyText": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:eu-west-1:[ACCOUNTID]:function:gov-classify-text",
+      "Parameters": {
+        "bucket_name.$": "$.bucket_name",
+        "file_key.$": "$.file_key",
+        "imageresult.$": "$.imageresult"
+      },
+      "Next": "StoreMetadata"
+    },
+    "StoreMetadata": {
+        "Type": "Task",
+        "Resource": "arn:aws:lambda:eu-west-1:[ACCOUNTID]:function:gov-store-metadata",
+        "Parameters": {
+            "doc.$": "$.doc",
+            "text.$": "$.text",
+            "blocks.$": "$.blocks"
+        },
+        "End": true
+    }
+  }
+}

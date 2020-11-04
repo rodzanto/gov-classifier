@@ -9,7 +9,7 @@ This demo showcases a state machine with AWS StepFunctions, to be triggered when
 
 ***Note this repo is still not adapted for deploying with AWS CloudFormation - Work in progress**
 
-0. Train an Amazon Rekognition Custom Labels classifier for the images of your documents, and an Amazon Comprehend Custom Classifier for the text of your documents. You have some sample data in the "Data" folder of this repo.
+0. Train an Amazon Rekognition Custom Labels classifier for the images of your documents (you can follow the instructions [here](https://docs.aws.amazon.com/rekognition/latest/customlabels-dg/gs-step-create-dataset.html)), and an Amazon Comprehend Custom Classifier for the text of your documents (you can follow the instructions [here](https://docs.aws.amazon.com/comprehend/latest/dg/how-document-classification-training.html)). You have some sample data for training these custom models in the "Data" folder of this repo.
 
 <img src="./Images/3.png" width="50%" alt="Custom Labels">
 

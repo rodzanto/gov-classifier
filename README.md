@@ -1,7 +1,9 @@
 ## Personal documentation classifier and metadata extraction with AWS AI services
 
 ### Objective:
-This demo showcases a state machine with AWS StepFunctions, to be triggered when new documents are stored on a given S3 bucket, for classifying the documents with two methods (Rekognition Custom Labels on image, and Comprehend Custom Classifier on text), and extracting the metadata and text storing it on a DynamoDB table.
+Remote documents processing is gaining popularity as more and more businesses are transforming and adapting for making the processes more efficient, and also while the physical distancing requirements and remote work have become the new normal.
+
+In this demo, we showcase a personal documentation processing solution powered by AWS AI services. The solution is orchestrated with a state machine in AWS StepFunctions, that is triggered when new documents are stored on a given S3 bucket from e.g. a front-end or web portal. This state machine classifies the documents with two methods: Rekognition Custom Labels on the documents' images, and Comprehend Custom Classifier on the documents' text, while extracting the metadata and storing the text that is relevant for each document type on a DynamoDB table.
 
 <img src="./Images/0.png" width="50%" alt="AWS demo architecture">
 

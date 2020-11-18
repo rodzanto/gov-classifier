@@ -28,7 +28,7 @@ def lambda_handler(event, context):
         
     stepFunction = boto3.client('stepfunctions')
     response = stepFunction.start_execution(
-        stateMachineArn='arn:aws:states:eu-west-1:889960878219:stateMachine:gov-workflow',
+        stateMachineArn='arn:aws:states:eu-west-1:[ACCOUNTID]:stateMachine:gov-workflow',
         input = json.dumps(input, indent=4)
     )
     

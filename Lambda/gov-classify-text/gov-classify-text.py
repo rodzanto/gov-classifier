@@ -37,17 +37,17 @@ def lambda_handler(event, context):
 
     #print(response)
 
-    labels = response['Classes']
+    #labels = response['Classes']
 
     ### Choose best classifier
     #TBD... choosing Rekognition Custom Labels for now
 
-    if len(labels):
-        print("Got {} labels".format(len(labels)))
-        print(labels)
+    # if len(labels):
+    #     print("Got {} labels".format(len(labels)))
+    #     print(labels)
         
-        metadata = {"doc":imageresult[0], "text": text, "blocks": "blocks"}
+    metadata = {"doc":imageresult[0], "text": text, "blocks": blocks}
         
-        return metadata
-    else:
-        return "Invalid or unknown document"
+    return metadata
+    # else:
+    #     return "Invalid or unknown document"

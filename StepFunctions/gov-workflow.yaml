@@ -3,7 +3,7 @@
   "States": {
     "ClassifyImage": {
       "Type": "Task",
-        "Resource": "arn:aws:lambda:eu-west-1:[ACCOUNTID]:function:gov-classify-image",
+        "Resource": "arn:aws:lambda:${REGION}:${ACCOUNTID}:function:gov-classify-image",
         "Parameters": {
           "bucket_name.$": "$.bucket_name",
           "file_key.$": "$.file_key"
@@ -13,7 +13,7 @@
     },
     "ClassifyText": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:eu-west-1:[ACCOUNTID]:function:gov-classify-text",
+      "Resource": "arn:aws:lambda:${REGION}:${ACCOUNTID}:function:gov-classify-text",
       "Parameters": {
         "bucket_name.$": "$.bucket_name",
         "file_key.$": "$.file_key",
@@ -23,7 +23,7 @@
     },
     "StoreMetadata": {
         "Type": "Task",
-        "Resource": "arn:aws:lambda:eu-west-1:[ACCOUNTID]:function:gov-store-metadata",
+        "Resource": "arn:aws:lambda:${REGION}:${ACCOUNTID}:function:gov-store-metadata",
         "Parameters": {
             "doc.$": "$.doc",
             "text.$": "$.text",

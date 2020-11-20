@@ -1,0 +1,249 @@
+Transform: AWS::Serverless-2016-10-31
+
+Description: >
+  SAM package builder to provision lambda function to deploy a personal documentation processing solution powered by AWS AI services
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - 
+        Label:
+          default: "Options"
+        Parameters:
+          - CustomLabelsProjectVersionARN
+          - CustomClassifierARN
+          - BucketName
+
+    ParameterLabels:
+      CustomLabelsProjectVersionARN:
+        default: "Your Rekognition Custom Labels Endpoint ARN" 
+      CustomClassifierARN:
+        default: "Your Comprehend Custom Classifier Endpoint ARN" 
+      BucketName:
+        default: "Bucket name to create for the solution" 
+
+Parameters:
+  CustomLabelsProjectVersionARN:
+    Type: String
+    Description: 'Provide your Rekognition Custom Labels Endpoint ARN'
+    ConstraintDescription: 'Invalid ARN for Project, see https://amzn.to/3oY7Bjr for more details'
+    AllowedPattern: '(^arn:[a-z\d-]+:rekognition:[a-z\d-]+:\d{12}:project\/[a-zA-Z0-9_.\-]{1,255}\/version\/[a-zA-Z0-9_.\-]{1,255}\/[0-9]+$)'
+  CustomClassifierARN:
+    Type: String
+    Description: 'Provide your Comprehend Custom Classifier Endpoint ARN'
+    ConstraintDescription: 'Invalid ARN for Project, see https://amzn.to/3mXFfDT for more details'
+    AllowedPattern: 'arn:aws(-[^:]+)?:comprehend:[a-zA-Z0-9-]*:[0-9]{12}:document-classifier/[a-zA-Z0-9](-*[a-zA-Z0-9])*'
+  BucketName:
+    Type: String
+    Description: 'Enter the name of the S3 Bucket to be used in the POC'    
+    MinLength: 3
+    MaxLength: 63
+    ConstraintDescription: 'Bucket Names must be unique. Bucket Names must be between 3 and 63 charactes long. Bucket names must start with a lowercase letter or a number, and may only contain lowercase letter, numbers and hyphens'
+    AllowedPattern: '([0-9]|[A-Za-z]|[0-9]|-)*'
+
+Resources:
+  GobClasifyImage:
+    Type: AWS::Serverless::Function
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - AWSLambdaExecute
+        - AmazonS3FullAccess
+        - AmazonDynamoDBFullAccess
+        - CloudWatchAgentServerPolicy
+        - ComprehendFullAccess
+        - AWSStepFunctionsFullAccess
+        - AmazonRekognitionCustomLabelsFullAccess       
+      CodeUri: Lambda/gov-classify-image/
+      Description: "Function to classify goverment issued documents in image format across categories based on a previously trained algorigthm"
+      Environment: 
+        Variables:
+          CUSTOM_LABELS_PROJECT_VERSION_ARN: !Ref CustomLabelsProjectVersionARN
+          CUSTOM_CLASSIFIER_ARN: !Ref CustomClassifierARN      
+      FunctionName: "gov-classify-image"
+      Handler: gov-classify-image.lambda_handler                              
+      Runtime: python3.7
+  
+  GobClasifyText:
+    Type: AWS::Serverless::Function
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - AWSLambdaExecute
+        - AmazonS3FullAccess
+        - AmazonDynamoDBFullAccess
+        - CloudWatchAgentServerPolicy
+        - ComprehendFullAccess
+        - AWSStepFunctionsFullAccess
+        - AmazonRekognitionCustomLabelsFullAccess
+        - Version: '2012-10-17' 
+          Statement:
+            - Effect: Allow
+              Action: "textract:DetectDocumentText"
+              Resource: "*"
+        - Version: '2012-10-17' 
+          Statement:
+            - Effect: Allow
+              Action: "s3:GetObject"
+              Action: "s3:GetObjectACL"
+              Resource: !Join ["", ["arn:aws:s3:::", !Ref BucketName, "/*"]]
+            - Effect: Allow
+              Action: "s3:ListBucket"
+              Resource: !Join ["", ["arn:aws:s3:::", !Ref BucketName]]
+      CodeUri: Lambda/gov-classify-text/
+      Description: "Function to classify goverment issued documents in text mode across categories based on a previously trained algorigthm"
+      Environment: 
+        Variables:
+          CUSTOM_LABELS_PROJECT_VERSION_ARN: !Ref CustomLabelsProjectVersionARN
+          CUSTOM_CLASSIFIER_ARN: !Ref CustomClassifierARN
+      FunctionName: "gov-classify-text"
+      Handler: gov-classify-text.lambda_handler                        
+      Runtime: python3.7
+  
+  GobStoreMetadata:
+    Type: AWS::Serverless::Function
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - AWSLambdaExecute
+        - AmazonS3FullAccess
+        - AmazonDynamoDBFullAccess
+        - CloudWatchAgentServerPolicy
+        - ComprehendFullAccess
+        - AWSStepFunctionsFullAccess
+        - AmazonRekognitionCustomLabelsFullAccess
+      CodeUri: Lambda/gov-store-metadata/
+      Description: "Function to store in a DDB table the metadata retrieved by the automation"
+      Environment: 
+        Variables:
+          DDB_METADATA_TABLE: !Ref DDBGovMetadata
+          DDB_CONFIG_TABLE: !Ref DDBGobConfig
+      FunctionName: "gov-store-metadata"
+      Handler: gov-store-metadata.lambda_handler                        
+      Runtime: python3.7
+  
+  GobClassifyTrigger:
+    Type: AWS::Serverless::Function
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Events:
+        S3Event:
+          Type: S3
+          Properties:
+            Bucket: !Ref s3Bucket
+            Events: s3:ObjectCreated:*
+        
+
+      Policies:
+        - AWSLambdaExecute
+        - Version: '2012-10-17' 
+          Statement:
+            - Effect: Allow
+              Action: "states:StartExecution"
+              Resource: !Ref StepFunctionsStateMachine
+        
+      CodeUri: Lambda/gov-classify-trigger/
+      Description: "Function to trigger step function machine when a S3 object is dropped in the bucket"
+      Environment: 
+        Variables:
+          STATE_MACHINE_ARN: !Ref StepFunctionsStateMachine          
+      FunctionName: "gov-classify-trigger"
+      Handler: gov-classify-trigger.lambda_handler                        
+      Runtime: python3.7
+
+  DDBGovMetadata:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - 
+          AttributeName: "times"
+          AttributeType: "N"
+        - 
+          AttributeName: "doc"
+          AttributeType: "S"
+      KeySchema: 
+              - 
+                AttributeName: "times"
+                KeyType: "HASH"
+              - 
+                AttributeName: "doc"
+                KeyType: "RANGE"        
+      TableName: 'gov-metadata'
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+  
+  DDBGobConfig:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - 
+          AttributeName: "doc"
+          AttributeType: "S"        
+      KeySchema:               
+              - 
+                AttributeName: "doc"
+                KeyType: "HASH"              
+      TableName: 'gov-config'
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+  
+  s3Bucket:
+    Type: AWS::S3::Bucket
+    Properties: 
+      AccessControl: Private
+      BucketName: !Ref BucketName 
+
+  StepFunctionsStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: StepFunctions/gov-workflow.yaml
+      DefinitionSubstitutions: 
+        ACCOUNTID: !Ref "AWS::AccountId"            
+        REGION: !Ref "AWS::Region" 
+      Name: "gov-workflow"
+      Policies: 
+        - Version: '2012-10-17'
+          Statement:
+            - Effect : Allow
+              Action:                                             
+                - lambda:InvokeFunction
+              Resource:
+                - !GetAtt GobClasifyImage.Arn
+                - !GetAtt GobClasifyText.Arn
+                - !GetAtt GobStoreMetadata.Arn
+
+  

@@ -26,8 +26,7 @@
         "Resource": "arn:aws:lambda:${REGION}:${ACCOUNTID}:function:gov-store-metadata",
         "Parameters": {
             "doc.$": "$.doc",
-            "text.$": "$.text",
-            "blocks.$": "$.blocks"
+            "lines.$": "$.lines"
         },
         "End": true
     }

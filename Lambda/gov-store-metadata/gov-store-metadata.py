@@ -10,8 +10,8 @@ current_time = datetime.now().strftime("%Y%m%d%H%M%S")
 
 def lambda_handler(event, context):
     doc = event['doc']
-    text = event['text']
-    blocks = event['blocks']
+    #text = event['text']
+    blocks = event['lines']
     DDB_METADATA_TABLE = os.environ['DDB_METADATA_TABLE']
     DDB_CONFIG_TABLE = os.environ['DDB_CONFIG_TABLE']
 
@@ -20,8 +20,6 @@ def lambda_handler(event, context):
     #respid = []
     #resptext = []
     response = json.loads('{}')
-    
-    filtered_response = {}
     
     #retrieve config for the document type
     
@@ -33,15 +31,13 @@ def lambda_handler(event, context):
         
     index = 0
     # Print detected text
-    for item in blocks:
-        if item["BlockType"] == "LINE":            
-            if 'Item' in config:                
-                if  index in lines:
-                    print('Inserto')
-                    response.update({item["Id"]: {"S": item["Text"]}})
-            else:
+    for idx, item in enumerate(blocks):
+        if 'Item' in config:                
+            if  idx in lines:
+                print('Inserto')
                 response.update({item["Id"]: {"S": item["Text"]}})
-            index+=1
+        else:
+            response.update({item["Id"]: {"S": item["Text"]}})      
     
     
     

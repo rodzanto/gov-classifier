@@ -1,6 +1,7 @@
 import boto3
 import json
 import os
+import sys
 
 CUSTOM_CLASSIFIER_ARN = os.environ['CUSTOM_CLASSIFIER_ARN']
 
@@ -20,12 +21,15 @@ def lambda_handler(event, context):
     blocks=response['Blocks']
 
     # Print detected text
-    text = ""
+    lines = []
     for item in response["Blocks"]:
         if item["BlockType"] == "LINE":
-            text = text + " " +  item["Text"]
+            line = {}
+            line.update({'Id':item['Id']})
+            line.update({'Text':item['Text']})
+            lines.append(line)
     
-    print(text)
+    print(lines)
 
     ###Comprehend Custom  - Commenting out for now              
     
@@ -37,17 +41,23 @@ def lambda_handler(event, context):
 
     #print(response)
 
-    labels = response['Classes']
+    #labels = response['Classes']
 
     ### Choose best classifier
     #TBD... choosing Rekognition Custom Labels for now
 
-    if len(labels):
-        print("Got {} labels".format(len(labels)))
-        print(labels)
+    # if len(labels):
+    #     print("Got {} labels".format(len(labels)))
+    #     print(labels)
+    
+    
         
-        metadata = {"doc":imageresult[0], "text": text, "blocks": "blocks"}
+    metadata = {"doc":imageresult[0], "lines": lines}
+    
+    
+    
+    print("Size of returned data " + str(sys.getsizeof(metadata)))
         
-        return metadata
-    else:
-        return "Invalid or unknown document"
+    return metadata
+    # else:
+    #     return "Invalid or unknown document"
